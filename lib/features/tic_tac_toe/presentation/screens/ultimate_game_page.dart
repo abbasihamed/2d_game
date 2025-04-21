@@ -7,12 +7,13 @@ import 'package:tictactoe/features/tic_tac_toe/presentation/widgets/ultimate_boa
 import 'package:tictactoe/features/tic_tac_toe/presentation/widgets/winner_line.dart';
 
 class UltimateGamePage extends StatelessWidget {
-  const UltimateGamePage({super.key});
+  final PlayerMode playerMode;
+  const UltimateGamePage({super.key, required this.playerMode});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => UltimateBloc(),
+      create: (_) => UltimateBloc(playerMode: playerMode),
       child: Scaffold(
         appBar: AppBar(title: const Text('Ultimate Tic‑Tac‑Toe')),
         body: BlocBuilder<UltimateBloc, UltimateState>(

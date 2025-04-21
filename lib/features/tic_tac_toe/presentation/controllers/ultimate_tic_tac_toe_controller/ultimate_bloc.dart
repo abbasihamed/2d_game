@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bloc/bloc.dart';
 import 'package:tictactoe/core/enums.dart';
 
@@ -5,31 +7,150 @@ part 'ultimate_event.dart';
 part 'ultimate_state.dart';
 
 class UltimateBloc extends Bloc<UltimateEvent, UltimateState> {
-  UltimateBloc() : super(UltimateState.initial()) {
-    on<UltimateCellTapped>(_onTap);
+  final PlayerMode playerMode;
+  UltimateBloc({this.playerMode = PlayerMode.two})
+    : super(UltimateState.initial()) {
+    on<UltimateCellTapped>(_onPlayerTap);
     on<UltimateReset>((e, emit) => emit(UltimateState.initial()));
   }
 
-  void _onTap(UltimateCellTapped e, Emitter<UltimateState> em) {
+  Future<void> _onPlayerTap(
+    UltimateCellTapped event,
+    Emitter<UltimateState> emit,
+  ) async {
     final s = state;
-    if (s.gameResult != UltimateResult.ongoing) return;
-    if (s.forcedBoard != -1 && e.lb != s.forcedBoard) return;
-    var lb = List<List<Player?>>.from(s.localBoards);
-    var lr = List<BoardResult>.from(s.localResults);
-    if (lb[e.lb][e.idx] != null || lr[e.lb] != BoardResult.ongoing) return;
-    lb[e.lb][e.idx] = s.currentPlayer;
-    lr[e.lb] = checkLocalResult(lb[e.lb]);
-    final nextForced = lr[e.idx] == BoardResult.ongoing ? e.idx : -1;
-    final gr = checkGlobalResult(lr);
-    em(
+    // 1) ignore if game over or wrong board
+    if (s.gameResult != UltimateResult.ongoing ||
+        (s.forcedBoard != -1 && event.lb != s.forcedBoard)) {
+      return;
+    }
+
+    // 2) apply human move
+    var boards = List<List<Player?>>.from(s.localBoards);
+    var results = List<BoardResult>.from(s.localResults);
+    if (boards[event.lb][event.idx] != null ||
+        results[event.lb] != BoardResult.ongoing) {
+      return;
+    }
+
+    boards[event.lb][event.idx] = s.currentPlayer;
+    results[event.lb] = checkLocalResult(boards[event.lb]);
+    final nextForced =
+        results[event.idx] == BoardResult.ongoing ? event.idx : -1;
+    final global = checkGlobalResult(results);
+    final nextPlayer = s.currentPlayer == Player.X ? Player.O : Player.X;
+
+    emit(
       UltimateState(
-        localBoards: lb,
-        localResults: lr,
+        localBoards: boards,
+        localResults: results,
         forcedBoard: nextForced,
-        currentPlayer: s.currentPlayer == Player.X ? Player.O : Player.X,
-        gameResult: gr,
+        currentPlayer: nextPlayer,
+        gameResult: global,
       ),
     );
+
+    // 3) if single‑player and it's AI’s turn, schedule AI move
+    if (playerMode == PlayerMode.single &&
+        nextPlayer == Player.O &&
+        global == UltimateResult.ongoing) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      await _performAIMove(emit);
+    }
+  }
+
+  Future<void> _performAIMove(Emitter<UltimateState> emit) async {
+    final s = state;
+    var boards = List<List<Player?>>.from(s.localBoards);
+    var results = List<BoardResult>.from(s.localResults);
+
+    // Determine which local board to play in:
+    int target =
+        s.forcedBoard != -1
+            ? s.forcedBoard
+            : (() {
+              // Gather all ongoing boards:
+              final ongoing = <int>[];
+              for (var i = 0; i < results.length; i++) {
+                if (results[i] == BoardResult.ongoing) ongoing.add(i);
+              }
+              // Pick one at random:
+              return ongoing[Random().nextInt(ongoing.length)];
+            })();
+
+    // **New: pick a random empty cell** within that board:
+    final emptyCells = <int>[];
+    for (var i = 0; i < boards[target].length; i++) {
+      if (boards[target][i] == null) emptyCells.add(i);
+    }
+    final chosenIndex =
+        emptyCells[Random().nextInt(
+          emptyCells.length,
+        )]; // :contentReference[oaicite:0]{index=0}
+
+    // Apply the AI move:
+    boards[target][chosenIndex] = Player.O;
+    results[target] = checkLocalResult(boards[target]);
+    final nextForced =
+        (results[chosenIndex] == BoardResult.ongoing) ? chosenIndex : -1;
+    final global = checkGlobalResult(results);
+
+    emit(
+      UltimateState(
+        localBoards: boards,
+        localResults: results,
+        forcedBoard: nextForced,
+        currentPlayer: Player.X,
+        gameResult: global,
+      ),
+    );
+  }
+
+  int _getBestLocalMove(List<Player?> board) {
+    int bestScore = -1000, bestMove = 0;
+    for (int i = 0; i < 9; i++) {
+      if (board[i] == null) {
+        board[i] = Player.O;
+        int score = _minimax(board, false);
+        board[i] = null;
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = i;
+        }
+      }
+    }
+    return bestMove;
+  }
+
+  int _minimax(List<Player?> b, bool isMax) {
+    final res = checkLocalResult(b);
+    // terminal scores
+    if (res != BoardResult.ongoing) {
+      if (res == BoardResult.oWin) return 1;
+      if (res == BoardResult.xWin) return -1;
+      return 0; // draw
+    }
+    if (isMax) {
+      int best = -1000;
+      for (int i = 0; i < 9; i++) {
+        if (b[i] == null) {
+          b[i] = Player.O;
+          best = max(best, _minimax(b, false));
+          b[i] = null;
+        }
+      }
+      return best;
+    } else {
+      int best = 1000;
+      for (int i = 0; i < 9; i++) {
+        if (b[i] == null) {
+          b[i] = Player.X;
+          best = min(best, _minimax(b, true));
+          b[i] = null;
+        }
+      }
+      return best;
+    }
   }
 }
 

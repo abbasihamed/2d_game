@@ -7,6 +7,7 @@ class UltimateBoardWidget extends StatelessWidget {
   const UltimateBoardWidget({super.key, required this.state});
   @override
   Widget build(BuildContext c) => GridView.builder(
+    physics: NeverScrollableScrollPhysics(),
     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
     itemCount: 9,
     itemBuilder: (_, bi) {

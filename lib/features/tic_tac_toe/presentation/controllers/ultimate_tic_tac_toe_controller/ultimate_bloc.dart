@@ -105,53 +105,6 @@ class UltimateBloc extends Bloc<UltimateEvent, UltimateState> {
       ),
     );
   }
-
-  int _getBestLocalMove(List<Player?> board) {
-    int bestScore = -1000, bestMove = 0;
-    for (int i = 0; i < 9; i++) {
-      if (board[i] == null) {
-        board[i] = Player.O;
-        int score = _minimax(board, false);
-        board[i] = null;
-        if (score > bestScore) {
-          bestScore = score;
-          bestMove = i;
-        }
-      }
-    }
-    return bestMove;
-  }
-
-  int _minimax(List<Player?> b, bool isMax) {
-    final res = checkLocalResult(b);
-    // terminal scores
-    if (res != BoardResult.ongoing) {
-      if (res == BoardResult.oWin) return 1;
-      if (res == BoardResult.xWin) return -1;
-      return 0; // draw
-    }
-    if (isMax) {
-      int best = -1000;
-      for (int i = 0; i < 9; i++) {
-        if (b[i] == null) {
-          b[i] = Player.O;
-          best = max(best, _minimax(b, false));
-          b[i] = null;
-        }
-      }
-      return best;
-    } else {
-      int best = 1000;
-      for (int i = 0; i < 9; i++) {
-        if (b[i] == null) {
-          b[i] = Player.X;
-          best = min(best, _minimax(b, true));
-          b[i] = null;
-        }
-      }
-      return best;
-    }
-  }
 }
 
 BoardResult checkLocalResult(List<Player?> b) {

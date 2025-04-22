@@ -20,27 +20,30 @@ class UltimateGamePage extends StatelessWidget {
           builder: (context, state) {
             // Determine if there's a global winner pattern:
             final winPattern = getWinningPattern(state.localResults);
+            print(winPattern);
 
             return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // The board with an optional victory line overlay
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Stack(
-                      children: [
+                SizedBox( 
+                  width: double.infinity,
+                  height: 450,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(child: UltimateBoardWidget(state: state)),
+                      if (winPattern != null)
                         Positioned.fill(
-                          child: UltimateBoardWidget(state: state),
-                        ),
-                        if (winPattern != null)
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: WinLinePainter(winPattern),
-                            ),
+                          child: CustomPaint(
+                            painter: WinLinePainter(winPattern),
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
+                  // child: Stack(
+                  //   children: [
+
+                  // ),
                 ),
 
                 // Current status or result text

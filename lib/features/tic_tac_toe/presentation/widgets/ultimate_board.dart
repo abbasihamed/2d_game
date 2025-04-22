@@ -33,7 +33,16 @@ class UltimateBoardWidget extends StatelessWidget {
                     border: Border.all(color: Colors.black12),
                   ),
                   child: Center(
-                    child: Text(state.localBoards[bi][ci]?.name ?? ''),
+                    child: Text(
+                      state.localBoards[bi][ci]?.name ?? '',
+                      style: TextStyle(
+                        color:
+                            state.localBoards[bi][ci]?.name == 'X'
+                                ? Colors.red
+                                : Colors.green,
+                        fontSize: 22,
+                      ),
+                    ),
                   ),
                 ),
               ),

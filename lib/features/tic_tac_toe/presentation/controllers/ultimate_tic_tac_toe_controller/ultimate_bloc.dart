@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:bloc/bloc.dart';
-import 'package:tictactoe/core/enums.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:two_d_game/core/enums.dart';
 
 part 'ultimate_event.dart';
 part 'ultimate_state.dart';

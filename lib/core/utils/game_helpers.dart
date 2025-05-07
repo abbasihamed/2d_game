@@ -1,4 +1,4 @@
-import 'package:tictactoe/core/enums.dart';
+import 'package:two_d_game/core/enums.dart';
 
 List<int>? getWinningPattern(List<BoardResult> results) {
   const patterns = [

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tictactoe/core/enums.dart';
-import 'package:tictactoe/core/utils/game_helpers.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/controllers/ultimate_tic_tac_toe_controller/ultimate_bloc.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/widgets/ultimate_board.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/widgets/winner_line.dart';
+import 'package:two_d_game/core/enums.dart';
+import 'package:two_d_game/core/utils/game_helpers.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/controllers/ultimate_tic_tac_toe_controller/ultimate_bloc.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/widgets/ultimate_board.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/widgets/winner_line.dart';
+
 
 class UltimateGamePage extends StatelessWidget {
   final PlayerMode playerMode;

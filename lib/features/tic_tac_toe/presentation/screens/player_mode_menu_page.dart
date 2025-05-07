@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tictactoe/core/enums.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/screens/game_page.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/screens/ultimate_game_page.dart';
+import 'package:two_d_game/core/enums.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/screens/game_page.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/screens/ultimate_game_page.dart';
 
 class PlayerModeMenuPage extends StatelessWidget {
   final GameType gameType;

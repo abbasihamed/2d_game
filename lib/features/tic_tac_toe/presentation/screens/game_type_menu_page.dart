@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tictactoe/core/enums.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/screens/player_mode_menu_page.dart';
+import 'package:two_d_game/core/enums.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/screens/player_mode_menu_page.dart';
 
 class GameTypeMenuPage extends StatelessWidget {
   const GameTypeMenuPage({super.key});

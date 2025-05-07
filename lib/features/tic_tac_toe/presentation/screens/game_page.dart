@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tictactoe/core/enums.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/controllers/tic_tac_toe_controller/tic_tac_toe_bloc.dart';
-import 'package:tictactoe/features/tic_tac_toe/presentation/widgets/board.dart';
+import 'package:two_d_game/core/enums.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/controllers/tic_tac_toe_controller/tic_tac_toe_bloc.dart';
+import 'package:two_d_game/features/tic_tac_toe/presentation/widgets/board.dart';
 
 class GamePage extends StatelessWidget {
   final GameMode gameMode;
@@ -40,7 +40,7 @@ class GameView extends StatelessWidget {
                     actions: [
                       TextButton(
                         onPressed: () {
-                          context.read<TicTacToeBloc>().add(ResetGame());
+                          context.read<TicTacToeBloc>().add(const ResetGame());
                           Navigator.pop(context);
                         },
                         child: const Text('Play Again'),

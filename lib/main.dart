@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/tic_tac_toe/presentation/screens/game_page.dart';
 import 'core/enums.dart';
-import 'screens/chess_screen.dart';
+import 'features/chess/presentation/screens/chess_screen.dart';
 
 void main() {
   runApp(const MyApp());

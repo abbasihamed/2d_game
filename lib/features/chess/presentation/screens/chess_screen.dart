@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/chess_bloc.dart';
-import '../models/chess_board.dart';
-import '../models/chess_piece.dart';
+import '../blocs/chess_bloc.dart';
+import '../widgets/chess_board.dart';
+import '../widgets/chess_piece.dart';
 
 class ChessScreen extends StatelessWidget {
   const ChessScreen({super.key});

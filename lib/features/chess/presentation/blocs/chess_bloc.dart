@@ -1,84 +1,13 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../models/chess_board.dart';
-import '../models/chess_piece.dart';
+import 'package:two_d_game/features/chess/presentation/widgets/chess_board.dart';
+import 'package:two_d_game/features/chess/presentation/widgets/chess_piece.dart';
 
-// Events
-abstract class ChessEvent extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
+part 'chess_event.dart';
+part 'chess_state.dart';
 
-class ChessPieceSelected extends ChessEvent {
-  final Position position;
 
-  ChessPieceSelected(this.position);
-
-  @override
-  List<Object?> get props => [position];
-}
-
-class ChessMoveMade extends ChessEvent {
-  final Position from;
-  final Position to;
-
-  ChessMoveMade(this.from, this.to);
-
-  @override
-  List<Object?> get props => [from, to];
-}
-
-class ChessComputerMove extends ChessEvent {
-  final Emitter<ChessState> emit;
-  ChessComputerMove(this.emit);
-}
-
-class ChessGameReset extends ChessEvent {}
-
-// State
-class ChessState extends Equatable {
-  final ChessBoard board;
-  final Position? selectedPiece;
-  final List<Position> validMoves;
-  final bool isGameOver;
-  final PieceColor? winner;
-
-  const ChessState({
-    required this.board,
-    this.selectedPiece,
-    this.validMoves = const [],
-    this.isGameOver = false,
-    this.winner,
-  });
-
-  ChessState copyWith({
-    ChessBoard? board,
-    Position? selectedPiece,
-    List<Position>? validMoves,
-    bool? isGameOver,
-    PieceColor? winner,
-  }) {
-    return ChessState(
-      board: board ?? this.board,
-      selectedPiece: selectedPiece,
-      validMoves: validMoves ?? this.validMoves,
-      isGameOver: isGameOver ?? this.isGameOver,
-      winner: winner,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-        board,
-        selectedPiece,
-        validMoves,
-        isGameOver,
-        winner,
-      ];
-}
-
-// BLoC
 class ChessBloc extends Bloc<ChessEvent, ChessState> {
   ChessBloc() : super(ChessState(board: ChessBoard())) {
     on<ChessPieceSelected>(_onPieceSelected);

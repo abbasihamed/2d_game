@@ -1,19 +1,18 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:two_d_game/core/enums.dart';
 import 'package:two_d_game/features/chess/presentation/widgets/chess_board.dart';
-import 'package:two_d_game/features/chess/presentation/widgets/chess_piece.dart';
 
 part 'chess_event.dart';
 part 'chess_state.dart';
-
 
 class ChessBloc extends Bloc<ChessEvent, ChessState> {
   ChessBloc() : super(ChessState(board: ChessBoard())) {
     on<ChessPieceSelected>(_onPieceSelected);
     on<ChessMoveMade>(_onMoveMade);
     on<ChessGameReset>(_onGameReset);
-    // on<ChessComputerMove>(_makeComputerMove);
+    on<ChessComputerMove>(_makeComputerMove);
   }
 
   void _onPieceSelected(ChessPieceSelected event, Emitter<ChessState> emit) {
@@ -29,21 +28,23 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
     }
   }
 
-  Future<void> _onMoveMade(
-      ChessMoveMade event, Emitter<ChessState> emit) async {
+  void _onMoveMade(ChessMoveMade event, Emitter<ChessState> emit) {
     if (state.validMoves.contains(event.to)) {
-      state.board.makeMove(event.from, event.to);
+      // Create a clone of the board before making the move
+      final newBoard = state.board.clone();
+      newBoard.makeMove(event.from, event.to);
+
       emit(state.copyWith(
-        board: state.board,
+        board: newBoard,
         selectedPiece: null,
         validMoves: [],
-        isGameOver: state.board.isGameOver,
-        winner: state.board.winner,
+        isGameOver: newBoard.isGameOver,
+        winner: newBoard.winner,
       ));
 
-      // If it's computer's turn, make a move after a delay
-      if (!state.isGameOver && state.board.currentTurn == PieceColor.black) {
-        await _makeComputerMove(emit);
+      // If it's computer's turn and game is not over, trigger computer move
+      if (!newBoard.isGameOver && newBoard.currentTurn == PieceColor.black) {
+        add(ChessComputerMove());
       }
     }
   }
@@ -59,7 +60,8 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
     ));
   }
 
-  Future<void> _makeComputerMove(Emitter<ChessState> emit) async {
+  void _makeComputerMove(
+      ChessComputerMove event, Emitter<ChessState> emit) async {
     // Simple AI: randomly select a valid move
     List<Position> allPossibleMoves = [];
     List<Position> allPossibleFrom = [];
@@ -76,7 +78,6 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
         }
       }
     }
-    await Future.delayed(const Duration(milliseconds: 800));
 
     if (allPossibleMoves.isNotEmpty) {
       final randomIndex =
@@ -84,12 +85,19 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
       final from = allPossibleFrom[randomIndex];
       final to = allPossibleMoves[randomIndex];
 
-      state.board.makeMove(from, to);
+      // Add a small delay to make the computer move feel more natural
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      // Create a new board instance for the computer's move
+      final newBoard = state.board.clone();
+      newBoard.makeMove(from, to);
 
       emit(state.copyWith(
-        board: state.board,
-        isGameOver: state.board.isGameOver,
-        winner: state.board.winner,
+        board: newBoard,
+        selectedPiece: null,
+        validMoves: [],
+        isGameOver: newBoard.isGameOver,
+        winner: newBoard.winner,
       ));
     }
   }

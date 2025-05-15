@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/chess_bloc.dart';
-import '../widgets/chess_board.dart';
-import '../widgets/chess_piece.dart';
+import 'package:two_d_game/core/enums.dart';
+import 'package:two_d_game/features/chess/presentation/blocs/chess_bloc.dart';
+import 'package:two_d_game/features/chess/presentation/widgets/chess_board.dart';
 
 class ChessScreen extends StatelessWidget {
   const ChessScreen({super.key});
@@ -28,7 +28,13 @@ class ChessScreen extends StatelessWidget {
           ],
         ),
         body: BlocBuilder<ChessBloc, ChessState>(
+          buildWhen: (previous, current) {
+            print('prev ${previous}');
+            print('current ${current}');
+            return previous != current || previous == current;
+          },
           builder: (context, state) {
+            // print(state.validMoves);
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

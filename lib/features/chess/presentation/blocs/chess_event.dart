@@ -24,9 +24,6 @@ class ChessMoveMade extends ChessEvent {
   List<Object?> get props => [from, to];
 }
 
-class ChessComputerMove extends ChessEvent {
-  final Emitter<ChessState> emit;
-  ChessComputerMove(this.emit);
-}
+class ChessComputerMove extends ChessEvent {}
 
 class ChessGameReset extends ChessEvent {}

@@ -11,3 +11,8 @@ enum UltimateResult { ongoing, xWin, oWin, draw }
 enum GameType { classic, ultimate }
 
 enum PlayerMode { single, two }
+
+
+enum PieceType { pawn, rook, knight, bishop, queen, king }
+
+enum PieceColor { white, black }

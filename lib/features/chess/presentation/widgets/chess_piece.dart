@@ -1,6 +1,4 @@
-enum PieceType { pawn, rook, knight, bishop, queen, king }
-
-enum PieceColor { white, black }
+import 'package:two_d_game/core/enums.dart';
 
 class ChessPiece {
   final PieceType type;

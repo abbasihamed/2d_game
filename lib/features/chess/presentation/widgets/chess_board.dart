@@ -1,3 +1,4 @@
+import 'package:two_d_game/core/enums.dart';
 
 import 'chess_piece.dart';
 
@@ -29,15 +30,47 @@ class ChessBoard {
   PieceColor? winner;
 
   ChessBoard()
-    : board = List.generate(
-        boardSize,
-        (i) => List.generate(boardSize, (j) => null),
-      ),
-      currentTurn = PieceColor.white,
-      validMoves = [],
-      isGameOver = false,
-      winner = null {
+      : board = List.generate(
+          boardSize,
+          (i) => List.generate(boardSize, (j) => null),
+        ),
+        currentTurn = PieceColor.white,
+        validMoves = [],
+        isGameOver = false,
+        winner = null {
     _initializeBoard();
+  }
+
+  // Private constructor for cloning
+  ChessBoard._clone(
+    this.board,
+    this.currentTurn,
+    this.selectedPiece,
+    this.validMoves,
+    this.isGameOver,
+    this.winner,
+  );
+
+  // Create a deep clone of the board
+  ChessBoard clone() {
+    // Deep copy the board
+    final boardCopy = List.generate(
+      boardSize,
+      (i) => List.generate(
+        boardSize,
+        (j) => board[i][j]?.copyWith(hasMoved: board[i][j]?.hasMoved ?? false),
+      ),
+    );
+
+    // Clone everything else
+    return ChessBoard._clone(
+      boardCopy,
+      currentTurn,
+      selectedPiece,
+      List.from(validMoves),
+      isGameOver,
+      winner,
+    );
   }
 
   void _initializeBoard() {
@@ -420,10 +453,9 @@ class ChessBoard {
     if (!hasLegalMoves) {
       isGameOver = true;
       if (_isInCheck(currentTurn, board)) {
-        winner =
-            currentTurn == PieceColor.white
-                ? PieceColor.black
-                : PieceColor.white;
+        winner = currentTurn == PieceColor.white
+            ? PieceColor.black
+            : PieceColor.white;
       }
     }
   }

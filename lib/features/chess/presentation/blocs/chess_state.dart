@@ -6,6 +6,8 @@ class ChessState extends Equatable {
   final List<Position> validMoves;
   final bool isGameOver;
   final PieceColor? winner;
+  final List<ChessPiece> capturedWhitePieces;
+  final List<ChessPiece> capturedBlackPieces;
 
   const ChessState({
     required this.board,
@@ -13,6 +15,8 @@ class ChessState extends Equatable {
     this.validMoves = const [],
     this.isGameOver = false,
     this.winner,
+    this.capturedWhitePieces = const [],
+    this.capturedBlackPieces = const [],
   });
 
   ChessState copyWith({
@@ -21,6 +25,8 @@ class ChessState extends Equatable {
     List<Position>? validMoves,
     bool? isGameOver,
     PieceColor? winner,
+    List<ChessPiece>? capturedWhitePieces,
+    List<ChessPiece>? capturedBlackPieces,
   }) {
     return ChessState(
       board: board ?? this.board,
@@ -28,6 +34,8 @@ class ChessState extends Equatable {
       validMoves: validMoves ?? this.validMoves,
       isGameOver: isGameOver ?? this.isGameOver,
       winner: winner,
+      capturedWhitePieces: capturedWhitePieces ?? this.capturedWhitePieces,
+      capturedBlackPieces: capturedBlackPieces ?? this.capturedBlackPieces,
     );
   }
 
@@ -38,5 +46,7 @@ class ChessState extends Equatable {
         validMoves,
         isGameOver,
         winner,
+        capturedWhitePieces,
+        capturedBlackPieces,
       ];
 }

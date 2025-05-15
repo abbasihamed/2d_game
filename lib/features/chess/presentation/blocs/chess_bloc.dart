@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:two_d_game/core/enums.dart';
 import 'package:two_d_game/features/chess/presentation/widgets/chess_board.dart';
+import 'package:two_d_game/features/chess/presentation/widgets/chess_piece.dart';
 
 part 'chess_event.dart';
 part 'chess_state.dart';
@@ -28,22 +29,51 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
     }
   }
 
+  // Shared method to handle move and capture logic
+  ChessState _handleMove(Position from, Position to, ChessState currentState) {
+    // Create a clone of the board before making the move
+    final newBoard = currentState.board.clone();
+
+    // Check if there's a piece at the destination (capture)
+    final capturedPiece = newBoard.board[to.row][to.col];
+
+    // Update captured pieces lists
+    List<ChessPiece> newCapturedWhitePieces =
+        List.from(currentState.capturedWhitePieces);
+    List<ChessPiece> newCapturedBlackPieces =
+        List.from(currentState.capturedBlackPieces);
+
+    if (capturedPiece != null) {
+      // Add the captured piece to the appropriate list based on its color
+      if (capturedPiece.color == PieceColor.white) {
+        newCapturedWhitePieces.add(capturedPiece);
+      } else {
+        newCapturedBlackPieces.add(capturedPiece);
+      }
+    }
+
+    // Make the move on the board
+    newBoard.makeMove(from, to);
+
+    return currentState.copyWith(
+      board: newBoard,
+      selectedPiece: null,
+      validMoves: [],
+      isGameOver: newBoard.isGameOver,
+      winner: newBoard.winner,
+      capturedWhitePieces: newCapturedWhitePieces,
+      capturedBlackPieces: newCapturedBlackPieces,
+    );
+  }
+
   void _onMoveMade(ChessMoveMade event, Emitter<ChessState> emit) {
     if (state.validMoves.contains(event.to)) {
-      // Create a clone of the board before making the move
-      final newBoard = state.board.clone();
-      newBoard.makeMove(event.from, event.to);
-
-      emit(state.copyWith(
-        board: newBoard,
-        selectedPiece: null,
-        validMoves: [],
-        isGameOver: newBoard.isGameOver,
-        winner: newBoard.winner,
-      ));
+      // Use the shared method to handle the move
+      final newState = _handleMove(event.from, event.to, state);
+      emit(newState);
 
       // If it's computer's turn and game is not over, trigger computer move
-      if (!newBoard.isGameOver && newBoard.currentTurn == PieceColor.black) {
+      if (!newState.board.isGameOver && newState.board.currentTurn == PieceColor.black) {
         add(ChessComputerMove());
       }
     }
@@ -57,6 +87,8 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
       validMoves: [],
       isGameOver: false,
       winner: null,
+      capturedWhitePieces: [],
+      capturedBlackPieces: [],
     ));
   }
 
@@ -88,17 +120,9 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
       // Add a small delay to make the computer move feel more natural
       await Future.delayed(const Duration(milliseconds: 800));
 
-      // Create a new board instance for the computer's move
-      final newBoard = state.board.clone();
-      newBoard.makeMove(from, to);
-
-      emit(state.copyWith(
-        board: newBoard,
-        selectedPiece: null,
-        validMoves: [],
-        isGameOver: newBoard.isGameOver,
-        winner: newBoard.winner,
-      ));
+      // Use the shared method to handle the move
+      final newState = _handleMove(from, to, state);
+      emit(newState);
     }
   }
 }

@@ -97,6 +97,8 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
     // Simple AI: randomly select a valid move
     List<Position> allPossibleMoves = [];
     List<Position> allPossibleFrom = [];
+    List<Position> kingMoves = [];
+    List<Position> kingFrom = [];
     
     // Check if the computer (black) is in check
     final isInCheck = state.board.isKingInCheck(PieceColor.black);
@@ -122,12 +124,51 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
               }
             } else {
               // Not in check, add all valid moves
-              allPossibleMoves.addAll(moves);
-              allPossibleFrom.addAll(List.filled(moves.length, Position(i, j)));
+              // For king moves, we need additional evaluation
+              if (piece?.type == PieceType.king) {
+                for (final move in moves) {
+                  // Create a temporary board to test if this move leads to a safe position
+                  final tempBoard = state.board.clone();
+                  tempBoard.makeMove(Position(i, j), move);
+                  
+                  // Check if after this move, the opponent has any move that would put the king in check
+                  bool isSafeMove = true;
+                  for (int wi = 0; wi < ChessBoard.boardSize && isSafeMove; wi++) {
+                    for (int wj = 0; wj < ChessBoard.boardSize && isSafeMove; wj++) {
+                      final opponentPiece = tempBoard.board[wi][wj];
+                      if (opponentPiece?.color == PieceColor.white) {
+                        final opponentMoves = tempBoard.getValidMoves(Position(wi, wj));
+                        for (final opponentMove in opponentMoves) {
+                          final futureBoard = tempBoard.clone();
+                          futureBoard.makeMove(Position(wi, wj), opponentMove);
+                          if (futureBoard.isKingInCheck(PieceColor.black)) {
+                            isSafeMove = false;
+                            break;
+                          }
+                        }
+                      }
+                    }
+                  }
+                  
+                  if (isSafeMove) {
+                    kingMoves.add(move);
+                    kingFrom.add(Position(i, j));
+                  }
+                }
+              } else {
+                allPossibleMoves.addAll(moves);
+                allPossibleFrom.addAll(List.filled(moves.length, Position(i, j)));
+              }
             }
           }
         }
       }
+    }
+
+    // Prioritize king moves if available and not in check
+    if (!isInCheck && kingMoves.isNotEmpty) {
+      allPossibleMoves = kingMoves;
+      allPossibleFrom = kingFrom;
     }
 
     if (allPossibleMoves.isNotEmpty) {

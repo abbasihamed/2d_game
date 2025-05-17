@@ -37,15 +37,29 @@ class ChessScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
-                      state.winner == PieceColor.white
-                          ? 'White wins!'
-                          : 'Black wins!',
+                      state.winner == null
+                          ? 'Stalemate - Draw!'
+                          : state.winner == PieceColor.white
+                              ? 'White wins by checkmate!'
+                              : 'Black wins by checkmate!',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
                 CapturedPiecesDisplay(
                   capturedPieces: state.capturedBlackPieces,
                 ),
+                if (!state.isGameOver && state.board.isKingInCheck(state.board.currentTurn))
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'CHECK!',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
                 Expanded(
                   child: Center(
                     child: AspectRatio(
@@ -85,6 +99,14 @@ class ChessBoardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Find kings in check
+    final whiteKingInCheck = board.isKingInCheck(PieceColor.white);
+    final blackKingInCheck = board.isKingInCheck(PieceColor.black);
+    
+    // Find king positions
+    final whiteKingPos = board.findKingPosition(PieceColor.white);
+    final blackKingPos = board.findKingPosition(PieceColor.black);
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.brown, width: 2),
@@ -103,6 +125,10 @@ class ChessBoardWidget extends StatelessWidget {
           final piece = board.board[row][col];
           final isSelected = selectedPiece == position;
           final isValidMove = validMoves.contains(position);
+          
+          // Check if this position contains a king in check
+          final isKingInCheck = (whiteKingInCheck && position == whiteKingPos) || 
+                               (blackKingInCheck && position == blackKingPos);
 
           return GestureDetector(
             onTap: () {
@@ -125,16 +151,29 @@ class ChessBoardWidget extends StatelessWidget {
                       ? Colors.blue
                       : isValidMove
                           ? Colors.green
-                          : Colors.transparent,
-                  width: 2,
+                          : isKingInCheck
+                              ? Colors.red
+                              : Colors.transparent,
+                  width: isKingInCheck ? 3 : 2,
                 ),
               ),
               child: piece != null
                   ? Padding(
                       padding: const EdgeInsets.all(4),
-                      child: Image.asset(
-                        piece.imagePath,
-                        fit: BoxFit.contain,
+                      child: Stack(
+                        children: [
+                          Image.asset(
+                            piece.imagePath,
+                            fit: BoxFit.contain,
+                          ),
+                          if (isKingInCheck && piece.type == PieceType.king)
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.red, width: 2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                        ],
                       ),
                     )
                   : null,

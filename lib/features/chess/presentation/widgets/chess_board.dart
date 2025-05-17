@@ -28,6 +28,7 @@ class ChessBoard {
   List<Position> validMoves;
   bool isGameOver;
   PieceColor? winner;
+  Position? enPassantTarget; // Add this field for en passant
 
   ChessBoard()
       : board = List.generate(
@@ -37,7 +38,8 @@ class ChessBoard {
         currentTurn = PieceColor.white,
         validMoves = [],
         isGameOver = false,
-        winner = null {
+        winner = null,
+        enPassantTarget = null {
     _initializeBoard();
   }
 
@@ -49,6 +51,7 @@ class ChessBoard {
     this.validMoves,
     this.isGameOver,
     this.winner,
+    this.enPassantTarget,
   );
 
   // Create a deep clone of the board
@@ -70,6 +73,7 @@ class ChessBoard {
       List.from(validMoves),
       isGameOver,
       winner,
+      enPassantTarget,
     );
   }
 
@@ -146,18 +150,32 @@ class ChessBoard {
 
       // Double move from starting position
       if (position.row == startRow &&
+          _isValidPosition(position.row + 2 * direction, position.col) &&
           board[position.row + 2 * direction][position.col] == null) {
         moves.add(Position(position.row + 2 * direction, position.col));
       }
     }
 
-    // Captures
+    // Regular captures
     for (int colOffset in [-1, 1]) {
       final targetCol = position.col + colOffset;
       if (_isValidPosition(position.row + direction, targetCol)) {
         final targetPiece = board[position.row + direction][targetCol];
         if (targetPiece != null && targetPiece.color != piece.color) {
           moves.add(Position(position.row + direction, targetCol));
+        }
+      }
+    }
+
+    // En passant capture
+    if (enPassantTarget != null) {
+      final enPassantRow = piece.color == PieceColor.white ? 3 : 4;
+      if (position.row == enPassantRow) {
+        for (int colOffset in [-1, 1]) {
+          if (position.col + colOffset == enPassantTarget!.col &&
+              enPassantTarget!.row == position.row) {
+            moves.add(Position(position.row + direction, enPassantTarget!.col));
+          }
         }
       }
     }
@@ -344,6 +362,25 @@ class ChessBoard {
     return _isInCheck(currentTurn, tempBoard);
   }
 
+  // Add this method to find the king's position
+  Position? findKingPosition(PieceColor color, [List<List<ChessPiece?>>? boardState]) {
+    final state = boardState ?? board;
+    for (int i = 0; i < boardSize; i++) {
+      for (int j = 0; j < boardSize; j++) {
+        final piece = state[i][j];
+        if (piece?.type == PieceType.king && piece?.color == color) {
+          return Position(i, j);
+        }
+      }
+    }
+    return null;
+  }
+
+  // Add this method to check if a king is in check
+  bool isKingInCheck(PieceColor color) {
+    return _isInCheck(color, board);
+  }
+
   bool _isInCheck(PieceColor color, List<List<ChessPiece?>> boardState) {
     // Find the king's position
     Position? kingPos;
@@ -401,6 +438,23 @@ class ChessBoard {
 
   void makeMove(Position from, Position to) {
     final piece = board[from.row][from.col]!;
+    
+    // Reset en passant target
+    Position? newEnPassantTarget;
+    
+    // Set en passant target if pawn moves two squares
+    if (piece.type == PieceType.pawn && (to.row - from.row).abs() == 2) {
+      newEnPassantTarget = Position((from.row + to.row) ~/ 2, from.col);
+    }
+    
+    // Handle en passant capture
+    if (piece.type == PieceType.pawn && 
+        to.col != from.col && 
+        board[to.row][to.col] == null) {
+      // This is an en passant capture
+      board[from.row][to.col] = null; // Remove the captured pawn
+    }
+    
     board[to.row][to.col] = piece.copyWith(hasMoved: true);
     board[from.row][from.col] = null;
 
@@ -425,6 +479,7 @@ class ChessBoard {
       board[to.row][rookCol] = null;
     }
 
+    enPassantTarget = newEnPassantTarget;
     currentTurn =
         currentTurn == PieceColor.white ? PieceColor.black : PieceColor.white;
     selectedPiece = null;
@@ -436,8 +491,13 @@ class ChessBoard {
 
   void _checkGameEnd() {
     bool hasLegalMoves = false;
-    for (int i = 0; i < boardSize; i++) {
-      for (int j = 0; j < boardSize; j++) {
+    
+    // Check if the current player is in check
+    bool inCheck = isKingInCheck(currentTurn);
+    
+    // Check if any piece has legal moves
+    for (int i = 0; i < boardSize && !hasLegalMoves; i++) {
+      for (int j = 0; j < boardSize && !hasLegalMoves; j++) {
         final piece = board[i][j];
         if (piece?.color == currentTurn) {
           final moves = getValidMoves(Position(i, j));
@@ -447,15 +507,18 @@ class ChessBoard {
           }
         }
       }
-      if (hasLegalMoves) break;
     }
 
     if (!hasLegalMoves) {
       isGameOver = true;
-      if (_isInCheck(currentTurn, board)) {
+      if (inCheck) {
+        // Checkmate
         winner = currentTurn == PieceColor.white
             ? PieceColor.black
             : PieceColor.white;
+      } else {
+        // Stalemate - no winner
+        winner = null;
       }
     }
   }

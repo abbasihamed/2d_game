@@ -97,15 +97,34 @@ class ChessBloc extends Bloc<ChessEvent, ChessState> {
     // Simple AI: randomly select a valid move
     List<Position> allPossibleMoves = [];
     List<Position> allPossibleFrom = [];
-
+    
+    // Check if the computer (black) is in check
+    final isInCheck = state.board.isKingInCheck(PieceColor.black);
+    
     for (int i = 0; i < ChessBoard.boardSize; i++) {
       for (int j = 0; j < ChessBoard.boardSize; j++) {
         final piece = state.board.board[i][j];
         if (piece?.color == PieceColor.black) {
           final moves = state.board.getValidMoves(Position(i, j));
           if (moves.isNotEmpty) {
-            allPossibleMoves.addAll(moves);
-            allPossibleFrom.addAll(List.filled(moves.length, Position(i, j)));
+            // If in check, we need to prioritize moves that get out of check
+            if (isInCheck) {
+              for (final move in moves) {
+                // Create a temporary board to test if this move escapes check
+                final tempBoard = state.board.clone();
+                tempBoard.makeMove(Position(i, j), move);
+                
+                // If this move escapes check, add it to our priority list
+                if (!tempBoard.isKingInCheck(PieceColor.black)) {
+                  allPossibleMoves.add(move);
+                  allPossibleFrom.add(Position(i, j));
+                }
+              }
+            } else {
+              // Not in check, add all valid moves
+              allPossibleMoves.addAll(moves);
+              allPossibleFrom.addAll(List.filled(moves.length, Position(i, j)));
+            }
           }
         }
       }
